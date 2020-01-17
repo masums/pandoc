@@ -87,6 +87,13 @@ tests =
         let todoSpan = spanWith ("", ["done", "DONE"], []) "DONE"
         in headerWith ("header", [], []) 1 (todoSpan <> space <> "header")
 
+    , "emphasis in first word" =:
+        "** TODO /fix/ this" =?>
+        let todoSpan = spanWith ("", ["todo", "TODO"], []) "TODO"
+        in headerWith ("fix-this", [], [])
+                      2
+                      (todoSpan <> space <> emph "fix" <> space <> "this")
+
     , "Header with unknown todo keyword" =:
         "* WAITING header" =?>
         headerWith ("waiting-header", [], []) 1 "WAITING header"
@@ -134,6 +141,16 @@ tests =
   , "Untagged header containing colons" =:
       "* This: is not: tagged" =?>
       headerWith ("this-is-not-tagged", [], []) 1 "This: is not: tagged"
+
+  , "Untagged header time followed by colon" =:
+      "** Meeting at 5:23: free food" =?>
+      let attr = ("meeting-at-523-free-food", [], [])
+      in headerWith attr 2 "Meeting at 5:23: free food"
+
+  , "tag followed by text" =:
+      "*** Looks like a :tag: but isn't" =?>
+      let attr = ("looks-like-a-tag-but-isnt", [], [])
+      in headerWith attr 3 "Looks like a :tag: but isn't"
 
   , "Header starting with strokeout text" =:
       T.unlines [ "foo"
@@ -229,5 +246,29 @@ tests =
                 , "  :END:"
                 ] =?>
       headerWith ("look", [], []) 1 "important"
+
+    , "third and forth level headers" =:
+      T.unlines [ "#+OPTIONS: p:t h:3"
+                , "*** Third"
+                , "    CLOSED: [2018-09-05 Wed 13:58]"
+                , "    Text 3"
+                , "**** Fourth"
+                , "SCHEDULED: <2019-05-13 Mon 22:42>"
+                , "Text 4"
+                ] =?>
+      mconcat
+      [ headerWith ("third", [], mempty) 3 "Third"
+      , plain $
+        strong "CLOSED:" <> space <> emph (str "[2018-09-05 Wed 13:58]")
+      , para "Text 3"
+      , orderedList [
+          mconcat
+          [ para "Fourth"
+          , plain $ strong "SCHEDULED:"
+                    <> space
+                    <> emph (str "<2019-05-13 Mon 22:42>")
+          , para "Text 4"
+          ]]
+      ]
     ]
   ]

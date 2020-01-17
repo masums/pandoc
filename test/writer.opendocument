@@ -1011,7 +1011,7 @@
     </text:list-style>
     <style:style style:name="T1" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" /></style:style>
     <style:style style:name="T2" style:family="text"><style:text-properties fo:font-weight="bold" style:font-weight-asian="bold" style:font-weight-complex="bold" /></style:style>
-    <style:style style:name="T3" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" fo:font-weight="bold" style:font-weight-asian="bold" style:font-weight-complex="bold" /></style:style>
+    <style:style style:name="T3" style:family="text"><style:text-properties fo:font-style="italic" fo:font-weight="bold" style:font-style-asian="italic" style:font-style-complex="italic" style:font-weight-asian="bold" style:font-weight-complex="bold" /></style:style>
     <style:style style:name="T4" style:family="text"><style:text-properties style:text-line-through-style="solid" /></style:style>
     <style:style style:name="T5" style:family="text"><style:text-properties fo:font-style="italic" style:font-style-asian="italic" style:font-style-complex="italic" style:text-line-through-style="solid" /></style:style>
     <style:style style:name="T6" style:family="text"><style:text-properties style:text-position="super 58%" /></style:style>
@@ -1576,7 +1576,8 @@ italics:</text:p>
 fruit</text:p><text:p text:style-name="Definition_20_Definition">contains
 seeds, crisp, pleasant to taste</text:p>
 <text:p text:style-name="Definition_20_Term"><text:span text:style-name="T1">orange</text:span></text:p>
-<text:p text:style-name="Definition_20_Definition">orange fruit</text:p><text:p text:style-name="P42">{ orange code block }</text:p><text:p text:style-name="P43">orange
+<text:p text:style-name="Definition_20_Definition">orange
+fruit</text:p><text:p text:style-name="P42">{ orange code block }</text:p><text:p text:style-name="P43">orange
 block quote</text:p>
 <text:p text:style-name="First_20_paragraph">Multiple definitions,
 tight:</text:p>
@@ -1879,7 +1880,7 @@ link in pointy braces</text:span></text:a>.</text:p>
 <text:p text:style-name="First_20_paragraph">From “Voyage dans la Lune” by
 Georges Melies (1902):</text:p>
 <text:p text:style-name="FigureWithCaption"><draw:frame draw:name="img1"><draw:image xlink:href="lalune.jpg" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad" /></draw:frame></text:p>
-<text:p text:style-name="FigureCaption">Figure <text:sequence text:ref-name="refIllustration0" text:name="Illustration" text:formula="ooow:Illustration+1" style:num-format="1">1</text:sequence>: lalune</text:p>
+<text:p text:style-name="FigureCaption">lalune</text:p>
 <text:p text:style-name="Text_20_body">Here is a movie
 <draw:frame draw:name="img2"><draw:image xlink:href="movie.jpg" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad" /></draw:frame>
 icon.</text:p>

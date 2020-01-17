@@ -2,8 +2,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Tests.Writers.Muse (tests) where
 
-import Prelude
-import Data.Text (unpack)
+import Prelude hiding (unlines)
+import Data.Text (Text, unlines)
 import Test.Tasty
 import Tests.Helpers
 import Text.Pandoc
@@ -15,15 +15,15 @@ defopts = def{ writerWrapText = WrapPreserve,
                writerExtensions = extensionsFromList [Ext_amuse,
                                                       Ext_auto_identifiers] }
 
-muse :: (ToPandoc a) => a -> String
+muse :: (ToPandoc a) => a -> Text
 muse = museWithOpts defopts
 
-museWithOpts :: (ToPandoc a) => WriterOptions -> a -> String
-museWithOpts opts = unpack . purely (writeMuse opts) . toPandoc
+museWithOpts :: (ToPandoc a) => WriterOptions -> a -> Text
+museWithOpts opts = purely (writeMuse opts) . toPandoc
 
 infix 4 =:
 (=:) :: (ToString a, ToPandoc a)
-     => String -> (a, String) -> TestTree
+     => String -> (a, Text) -> TestTree
 (=:) = test muse
 
 noteLocationTestDoc :: Blocks
@@ -545,6 +545,7 @@ tests = [ testGroup "block elements"
                    "remove soft break" $ "a" <> softbreak <> "b"
                    =?> ("a b" :: String)
             , "line break" =: "a" <> linebreak <> "b" =?> "a<br>\nb"
+            , "line break at the end" =: "a" <> linebreak =?> "a<br>"
             , "no newline after line break in header" =: header 1 ("a" <> linebreak <> "b") =?> "* a<br>b"
             , "no softbreak in header" =: header 1 ("a" <> softbreak <> "b") =?> "* a b"
             ]
@@ -619,6 +620,13 @@ tests = [ testGroup "block elements"
           , "adjacent spans" =: spanWith ("", ["syllable"], []) (str "wa") <>
                                 spanWith ("", ["syllable"], []) (str "ter")
                              =?> "<class name=\"syllable\">wa</class><class name=\"syllable\">ter</class>"
+          , testGroup "RTL"
+            [ "RTL span" =: spanWith ("",[],[("dir", "rtl")]) (text "foo bar") =?> "<<<foo bar>>>"
+            , "LTR span" =: spanWith ("",[],[("dir", "ltr")]) (text "foo bar") =?> ">>>foo bar<<<"
+            , "RTL span with a class" =: spanWith ("",["foobar"],[("dir", "rtl")]) (text "foo bar") =?> "<class name=\"foobar\"><<<foo bar>>></class>"
+            , "LTR span with a class" =: spanWith ("",["foobar"],[("dir", "ltr")]) (text "foo bar") =?> "<class name=\"foobar\">>>>foo bar<<<</class>"
+            , "Escape <<< and >>>" =: plain (text "<<< foo bar >>>") =?> "<verbatim><<<</verbatim> foo bar <verbatim>>>></verbatim>"
+            ]
           , testGroup "combined"
             [ "emph word before" =:
                 para ("foo" <> emph "bar") =?>

@@ -1,5 +1,5 @@
 name:            pandoc
-version:         2.7.2
+version:         2.9.1.1
 cabal-version:   2.0
 build-type:      Simple
 license:         GPL-2
@@ -11,21 +11,21 @@ bug-reports:     https://github.com/jgm/pandoc/issues
 stability:       alpha
 homepage:        https://pandoc.org
 category:        Text
-tested-with:     GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.4, GHC == 8.6.3
+tested-with:     GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.4, GHC == 8.6.5
 synopsis:        Conversion between markup formats
 description:     Pandoc is a Haskell library for converting from one markup
                  format to another, and a command-line tool that uses
                  this library. It can read several dialects of Markdown and
                  (subsets of) HTML, reStructuredText, LaTeX, DocBook, JATS,
                  MediaWiki markup, DokuWiki markup, TWiki markup,
-                 TikiWiki markup, Creole 1.0, Haddock markup, OPML,
-                 Emacs Org-Mode, Emacs Muse, txt2tags, ipynb (Jupyter
+                 TikiWiki markup, Jira markup, Creole 1.0, Haddock markup,
+                 OPML, Emacs Org-Mode, Emacs Muse, txt2tags, ipynb (Jupyter
                  notebooks), Vimwiki, Word Docx, ODT, EPUB, FictionBook2,
                  roff man, and Textile, and it can write Markdown,
                  reStructuredText, XHTML, HTML 5, LaTeX, ConTeXt, DocBook,
                  JATS, OPML, TEI, OpenDocument, ODT, Word docx,
                  PowerPoint pptx, RTF, MediaWiki, DokuWiki, XWiki,
-                 ZimWiki, Textile, roff man, roff ms, plain text,
+                 ZimWiki, Textile, Jira, roff man, roff ms, plain text,
                  Emacs Org-Mode, AsciiDoc, Haddock markup,
                  EPUB (v2 and v3), ipynb, FictionBook2,
                  InDesign ICML, Muse, LaTeX beamer slides,
@@ -41,6 +41,7 @@ description:     Pandoc is a Haskell library for converting from one markup
                  only adding a reader or writer.
 data-files:
                  -- templates
+                 data/templates/styles.html
                  data/templates/default.html4
                  data/templates/default.html5
                  data/templates/default.docbook4
@@ -53,6 +54,7 @@ data-files:
                  data/templates/default.latex
                  data/templates/default.context
                  data/templates/default.texinfo
+                 data/templates/default.jira
                  data/templates/default.man
                  data/templates/default.ms
                  data/templates/default.markdown
@@ -179,13 +181,15 @@ data-files:
 extra-source-files:
                  -- documentation
                  INSTALL.md, AUTHORS.md, README.md,
-                 CONTRIBUTING.md, BUGS, changelog,
+                 CONTRIBUTING.md, BUGS, changelog.md,
                  man/pandoc.1
-                 -- stack build plan
+                 -- cabal and stack build plans
+                 cabal.project
                  stack.yaml
                  -- files needed to build man page
                  man/manfilter.lua
-                 man/pandoc.1.template
+                 man/pandoc.1.before
+                 man/pandoc.1.after
                  -- trypandoc
                  trypandoc/Makefile
                  trypandoc/index.html
@@ -193,9 +197,17 @@ extra-source-files:
                  test/bodybg.gif
                  test/*.native
                  test/command/*.md
+                 test/command/A.txt
+                 test/command/B.txt
+                 test/command/C.txt
+                 test/command/D.txt
+                 test/command/defaults1.yaml
+                 test/command/defaults2.yaml
                  test/command/3533-rst-csv-tables.csv
                  test/command/3880.txt
                  test/command/5182.txt
+                 test/command/5700-metadata-file-1.yml
+                 test/command/5700-metadata-file-2.yml
                  test/command/abbrevs
                  test/command/SVG_logo-without-xml-declaration.svg
                  test/command/SVG_logo.svg
@@ -210,6 +222,7 @@ extra-source-files:
                  test/command/3510-export.latex
                  test/command/3510-src.hs
                  test/command/3971b.tex
+                 test/docbook-chapter.docbook
                  test/docbook-reader.docbook
                  test/docbook-xref.docbook
                  test/html-reader.html
@@ -231,9 +244,9 @@ extra-source-files:
                  test/mediawiki-reader.wiki
                  test/vimwiki-reader.wiki
                  test/creole-reader.txt
-                 test/creole-reader.native
                  test/rst-reader.rst
                  test/jats-reader.xml
+                 test/jira-reader.jira
                  test/s5-basic.html
                  test/s5-fancy.html
                  test/s5-fragment.html
@@ -242,6 +255,7 @@ extra-source-files:
                  test/tables.docbook4
                  test/tables.docbook5
                  test/tables.jats
+                 test/tables.jira
                  test/tables.dokuwiki
                  test/tables.zimwiki
                  test/tables.icml
@@ -266,12 +280,14 @@ extra-source-files:
                  test/tables.fb2
                  test/tables.muse
                  test/tables.custom
+                 test/tables.xwiki
                  test/testsuite.txt
                  test/writer.latex
                  test/writer.context
                  test/writer.docbook4
                  test/writer.docbook5
                  test/writer.jats
+                 test/writer.jira
                  test/writer.html4
                  test/writer.html5
                  test/writer.man
@@ -310,9 +326,7 @@ extra-source-files:
                  test/lhs-test.fragment.html+lhs
                  test/pipe-tables.txt
                  test/dokuwiki_external_images.dokuwiki
-                 test/dokuwiki_external_images.native
                  test/dokuwiki_multiblock_table.dokuwiki
-                 test/dokuwiki_multiblock_table.native
                  test/fb2/*.markdown
                  test/fb2/*.fb2
                  test/fb2/images-embedded.html
@@ -338,6 +352,7 @@ extra-source-files:
                  test/odt/markdown/*.md
                  test/odt/native/*.native
                  test/lua/*.lua
+                 test/lua/module/*.lua
 source-repository head
   type:          git
   location:      git://github.com/jgm/pandoc.git
@@ -350,17 +365,12 @@ flag embed_data_files
   Description:   Embed data files in binary for relocatable executable.
   Default:       False
 
-flag derive_json_via_th
-  Description:   Use Template Haskell instead of GHC Generics to derive ToJSON
-                 and FromJSON instances.
-  Default:       True
-
 flag trypandoc
   Description:   Build trypandoc cgi executable.
   Default:       False
 
 library
-  build-depends: base >= 4.8 && < 5,
+  build-depends: base >= 4.9 && < 5,
                  syb >= 0.1 && < 0.8,
                  containers >= 0.4.2.1 && < 0.7,
                  unordered-containers >= 0.2 && < 0.3,
@@ -376,33 +386,36 @@ library
                  safe >= 0.3 && < 0.4,
                  zip-archive >= 0.2.3.4 && < 0.5,
                  HTTP >= 4000.0.5 && < 4000.4,
-                 texmath >= 0.11.2.1 && < 0.12,
+                 texmath >= 0.12 && < 0.13,
                  xml >= 1.3.12 && < 1.4,
                  split >= 0.2 && < 0.3,
                  random >= 1 && < 1.2,
-                 pandoc-types >= 1.17.5 && < 1.18,
+                 pandoc-types >= 1.20 && < 1.21,
                  aeson >= 0.7 && < 1.5,
                  scientific >= 0.3 && < 0.4,
                  aeson-pretty >= 0.8.5 && < 0.9,
                  tagsoup >= 0.14.6 && < 0.15,
                  base64-bytestring >= 0.1 && < 1.1,
                  zlib >= 0.5 && < 0.7,
-                 skylighting >= 0.7.7 && < 0.8,
+                 skylighting >= 0.8.3 && < 0.9,
+                 skylighting-core >= 0.8.3 && < 0.9,
                  data-default >= 0.4 && < 0.8,
                  temporary >= 1.1 && < 1.4,
                  blaze-html >= 0.9 && < 0.10,
                  blaze-markup >= 0.8 && < 0.9,
                  vector >= 0.10 && < 0.13,
+                 jira-wiki-markup >= 1.0 && < 1.1,
                  hslua >= 1.0.1 && < 1.1,
+                 hslua-module-system >= 0.2 && < 0.3,
                  hslua-module-text >= 0.2 && < 0.3,
                  binary >= 0.5 && < 0.11,
                  SHA >= 1.6 && < 1.7,
-                 haddock-library >= 1.7 && < 1.8,
+                 haddock-library >= 1.8 && < 1.9,
                  deepseq >= 1.3 && < 1.5,
                  JuicyPixels >= 3.1.6.1 && < 3.4,
                  Glob >= 0.7 && < 0.11,
                  cmark-gfm >= 0.2 && < 0.3,
-                 doctemplates >= 0.2.1 && < 0.3,
+                 doctemplates >= 0.8 && < 0.9,
                  network-uri >= 2.6 && < 2.7,
                  network >= 2.6,
                  http-client >= 0.4.30 && < 0.7,
@@ -410,16 +423,13 @@ library
                  http-types >= 0.8 && < 0.13,
                  case-insensitive >= 1.2 && < 1.3,
                  unicode-transforms >= 0.3 && < 0.4,
-                 HsYAML >= 0.1.1.1 && < 0.2,
+                 HsYAML >= 0.2 && < 0.3,
+                 doclayout >= 0.3 && < 0.4,
                  ipynb >= 0.1 && < 0.2,
-                 attoparsec >= 0.12 && < 0.14
-  if impl(ghc < 8.0)
-    build-depends: semigroups == 0.18.*,
-                   -- basement 0.0.8 and foundation 0.0.21, transitive
-                   -- dependencies, drop support for ghc 7.10.
-                   basement < 0.0.8,
-                   foundation < 0.0.21
-  if impl(ghc >= 8.0) && os(windows) && arch(i386)
+                 attoparsec >= 0.12 && < 0.14,
+                 text-conversions >= 0.3 && < 0.4,
+                 emojis >= 0.1 && < 0.2
+  if os(windows) && arch(i386)
      build-depends: basement >= 0.0.10,
                     foundation >= 0.0.23
                     -- basement 0.0.9 won't build on 32-bit windows.
@@ -435,19 +445,23 @@ library
      cpp-options:   -DEMBED_DATA_FILES
      build-depends: file-embed >= 0.0 && < 0.1
      other-modules: Text.Pandoc.Data
-  if flag(derive_json_via_th)
-     cpp-options:   -DDERIVE_JSON_VIA_TH
   if os(windows)
     cpp-options:      -D_WINDOWS
   ghc-options:     -Wall -fno-warn-unused-do-bind
-  if impl(ghc > 8.0)
-    ghc-options:     -Wincomplete-record-updates
-                     -Wnoncanonical-monad-instances
-                     -Wnoncanonical-monadfail-instances
-  if impl(ghc > 8.4)
+                   -Wincomplete-record-updates
+                   -Wnoncanonical-monad-instances
+  -- Later:
+  -- -Wpartial-fields        (currently used in Powerpoint writer)
+  -- -Wmissing-export-lists  (currently some Odt modules violate this)
+  -- -Wredundant-constraints (problematic if we want to support older base)
+  if impl(ghc >= 8.2)
+    ghc-options:     -Wcpp-undef
+  if impl(ghc >= 8.4)
     ghc-options:     -Wincomplete-uni-patterns
                      -Widentities
                      -Werror=missing-home-modules
+                     -fhide-source-paths
+
   default-language: Haskell2010
   other-extensions: NoImplicitPrelude
   hs-source-dirs:  src
@@ -456,7 +470,6 @@ library
                    Text.Pandoc.App,
                    Text.Pandoc.Options,
                    Text.Pandoc.Extensions,
-                   Text.Pandoc.Pretty,
                    Text.Pandoc.Shared,
                    Text.Pandoc.MediaBag,
                    Text.Pandoc.Error,
@@ -474,6 +487,7 @@ library
                    Text.Pandoc.Readers.Org,
                    Text.Pandoc.Readers.DocBook,
                    Text.Pandoc.Readers.JATS,
+                   Text.Pandoc.Readers.Jira,
                    Text.Pandoc.Readers.OPML,
                    Text.Pandoc.Readers.Textile,
                    Text.Pandoc.Readers.Native,
@@ -497,6 +511,7 @@ library
                    Text.Pandoc.Writers.HTML,
                    Text.Pandoc.Writers.Ipynb,
                    Text.Pandoc.Writers.ICML,
+                   Text.Pandoc.Writers.Jira,
                    Text.Pandoc.Writers.LaTeX,
                    Text.Pandoc.Writers.ConTeXt,
                    Text.Pandoc.Writers.OpenDocument,
@@ -552,8 +567,8 @@ library
                    Text.Pandoc.Readers.Docx.Lists,
                    Text.Pandoc.Readers.Docx.Combine,
                    Text.Pandoc.Readers.Docx.Parse,
+                   Text.Pandoc.Readers.Docx.Parse.Styles,
                    Text.Pandoc.Readers.Docx.Util,
-                   Text.Pandoc.Readers.Docx.StyleMap,
                    Text.Pandoc.Readers.Docx.Fields,
                    Text.Pandoc.Readers.LaTeX.Parsing,
                    Text.Pandoc.Readers.LaTeX.Lang,
@@ -577,7 +592,9 @@ library
                    Text.Pandoc.Readers.Org.ParserState,
                    Text.Pandoc.Readers.Org.Parsing,
                    Text.Pandoc.Readers.Org.Shared,
+                   Text.Pandoc.Readers.Metadata,
                    Text.Pandoc.Readers.Roff,
+                   Text.Pandoc.Writers.Docx.StyleMap,
                    Text.Pandoc.Writers.Roff,
                    Text.Pandoc.Writers.Powerpoint.Presentation,
                    Text.Pandoc.Writers.Powerpoint.Output,
@@ -588,12 +605,19 @@ library
                    Text.Pandoc.Lua.Marshaling.AST,
                    Text.Pandoc.Lua.Marshaling.AnyValue,
                    Text.Pandoc.Lua.Marshaling.CommonState,
+                   Text.Pandoc.Lua.Marshaling.Context,
+                   Text.Pandoc.Lua.Marshaling.List,
+                   Text.Pandoc.Lua.Marshaling.MediaBag,
                    Text.Pandoc.Lua.Marshaling.ReaderOptions,
+                   Text.Pandoc.Lua.Marshaling.Version,
                    Text.Pandoc.Lua.Module.MediaBag,
                    Text.Pandoc.Lua.Module.Pandoc,
+                   Text.Pandoc.Lua.Module.System,
+                   Text.Pandoc.Lua.Module.Types,
                    Text.Pandoc.Lua.Module.Utils,
                    Text.Pandoc.Lua.Packages,
                    Text.Pandoc.Lua.Util,
+                   Text.Pandoc.Lua.Walk,
                    Text.Pandoc.CSS,
                    Text.Pandoc.CSV,
                    Text.Pandoc.RoffChar,
@@ -606,13 +630,10 @@ library
 
 executable pandoc
   build-depends: pandoc, base >= 4.8 && < 5
-  if impl(ghc < 8.0)
-    build-depends: semigroups == 0.18.*
   if impl(ghc < 8.4)
      hs-source-dirs: prelude
      other-modules:  Prelude
      build-depends:  base-compat >= 0.9
-  ghc-options:   -rtsopts -with-rtsopts=-K16m -Wall -fno-warn-unused-do-bind -threaded
   if flag(static)
     ld-options:     -static
   default-language: Haskell2010
@@ -621,6 +642,17 @@ executable pandoc
   main-is:         pandoc.hs
   buildable:       True
   other-modules:   Paths_pandoc
+  ghc-options:     -rtsopts -with-rtsopts=-K16m -threaded
+                   -Wall -fno-warn-unused-do-bind
+                   -Wincomplete-record-updates
+                   -Wnoncanonical-monad-instances
+  if impl(ghc >= 8.2)
+    ghc-options:     -Wcpp-undef
+  if impl(ghc >= 8.4)
+    ghc-options:     -Wincomplete-uni-patterns
+                     -Widentities
+                     -Werror=missing-home-modules
+                     -fhide-source-paths
 
 executable trypandoc
   main-is:         trypandoc.hs
@@ -633,12 +665,21 @@ executable trypandoc
     buildable:     True
   else
     buildable:     False
-  if impl(ghc < 8.0)
-    build-depends: semigroups == 0.18.*
   if impl(ghc < 8.4)
      hs-source-dirs: prelude
      other-modules:  Prelude
      build-depends:  base-compat >= 0.9
+  ghc-options:     -rtsopts -with-rtsopts=-K16m -threaded
+                   -Wall -fno-warn-unused-do-bind
+                   -Wincomplete-record-updates
+                   -Wnoncanonical-monad-instances
+  if impl(ghc >= 8.2)
+    ghc-options:     -Wcpp-undef
+  if impl(ghc >= 8.4)
+    ghc-options:     -Wincomplete-uni-patterns
+                     -Widentities
+                     -Werror=missing-home-modules
+                     -fhide-source-paths
 
 benchmark weigh-pandoc
   type:            exitcode-stdio-1.0
@@ -649,15 +690,24 @@ benchmark weigh-pandoc
                    text,
                    weigh >= 0.0 && < 0.1,
                    mtl >= 2.2 && < 2.3
-  if impl(ghc < 8.0)
-    build-depends: semigroups == 0.18.*
   if impl(ghc < 8.4)
      hs-source-dirs: prelude
      other-modules:  Prelude
      build-depends:  base-compat >= 0.9
-  ghc-options:   -rtsopts -Wall -fno-warn-unused-do-bind -threaded
   default-language: Haskell2010
   other-extensions: NoImplicitPrelude
+  ghc-options:     -rtsopts -with-rtsopts=-K16m -threaded
+                   -Wall -fno-warn-unused-do-bind
+                   -Wincomplete-record-updates
+                   -Wnoncanonical-monad-instances
+  if impl(ghc >= 8.2)
+    ghc-options:     -Wcpp-undef
+  if impl(ghc >= 8.4)
+    ghc-options:     -Wincomplete-uni-patterns
+                     -Widentities
+                     -Werror=missing-home-modules
+                     -fhide-source-paths
+
 
 test-suite test-pandoc
   type:           exitcode-stdio-1.0
@@ -665,7 +715,8 @@ test-suite test-pandoc
   hs-source-dirs: test
   build-depends:  base >= 4.8 && < 5,
                   pandoc,
-                  pandoc-types >= 1.17.5 && < 1.18,
+                  pandoc-types >= 1.20 && < 1.21,
+                  mtl >= 2.2 && < 2.3,
                   bytestring >= 0.9 && < 0.11,
                   base64-bytestring >= 0.1 && < 1.1,
                   text >= 1.1.1.0 && < 1.3,
@@ -675,19 +726,19 @@ test-suite test-pandoc
                   hslua >= 1.0 && < 1.1,
                   process >= 1.2.3 && < 1.7,
                   temporary >= 1.1 && < 1.4,
-                  Diff >= 0.2 && < 0.4,
+                  Diff >= 0.2 && < 0.5,
                   tasty >= 0.11 && < 1.3,
                   tasty-hunit >= 0.9 && < 0.11,
+                  tasty-lua >= 0.2 && < 0.3,
                   tasty-quickcheck >= 0.8 && < 0.11,
                   tasty-golden >= 2.3 && < 2.4,
-                  QuickCheck >= 2.4 && < 2.13,
+                  QuickCheck >= 2.4 && < 2.14,
                   containers >= 0.4.2.1 && < 0.7,
                   executable-path >= 0.0 && < 0.1,
                   zip-archive >= 0.2.3.4 && < 0.5,
                   xml >= 1.3.12 && < 1.4,
+                  doctemplates >= 0.8 && < 0.9,
                   Glob >= 0.7 && < 0.11
-  if impl(ghc < 8.0)
-    build-depends: semigroups == 0.18.*
   if impl(ghc < 8.4)
      hs-source-dirs: prelude
      other-modules:  Prelude
@@ -696,10 +747,12 @@ test-suite test-pandoc
                   Tests.Command
                   Tests.Helpers
                   Tests.Lua
+                  Tests.Lua.Module
                   Tests.Shared
                   Tests.Readers.LaTeX
                   Tests.Readers.HTML
                   Tests.Readers.JATS
+                  Tests.Readers.Jira
                   Tests.Readers.Markdown
                   Tests.Readers.Org
                   Tests.Readers.Org.Block
@@ -744,9 +797,20 @@ test-suite test-pandoc
                   Tests.Writers.OOXML
   if os(windows)
     cpp-options:      -D_WINDOWS
-  ghc-options:  -rtsopts -Wall -fno-warn-unused-do-bind -threaded
   default-language: Haskell2010
   other-extensions: NoImplicitPrelude
+  ghc-options:     -rtsopts -with-rtsopts=-K16m -threaded
+                   -Wall -fno-warn-unused-do-bind
+                   -Wincomplete-record-updates
+                   -Wnoncanonical-monad-instances
+  if impl(ghc >= 8.2)
+    ghc-options:     -Wcpp-undef
+  if impl(ghc >= 8.4)
+    ghc-options:     -Wincomplete-uni-patterns
+                     -Widentities
+                     -Werror=missing-home-modules
+                     -fhide-source-paths
+
 
 benchmark benchmark-pandoc
   type:            exitcode-stdio-1.0
@@ -758,12 +822,20 @@ benchmark benchmark-pandoc
                    text >= 1.1.1.0 && < 1.3,
                    mtl >= 2.2 && < 2.3,
                    criterion >= 1.0 && < 1.6
-  if impl(ghc < 8.0)
-    build-depends: semigroups == 0.18.*
   if impl(ghc < 8.4)
      hs-source-dirs: prelude
      other-modules:  Prelude
      build-depends:  base-compat >= 0.9
-  ghc-options:   -rtsopts -Wall -fno-warn-unused-do-bind -threaded
   default-language: Haskell2010
   other-extensions: NoImplicitPrelude
+  ghc-options:     -rtsopts -with-rtsopts=-K16m -threaded
+                   -Wall -fno-warn-unused-do-bind
+                   -Wincomplete-record-updates
+                   -Wnoncanonical-monad-instances
+  if impl(ghc >= 8.2)
+    ghc-options:     -Wcpp-undef
+  if impl(ghc >= 8.4)
+    ghc-options:     -Wincomplete-uni-patterns
+                     -Widentities
+                     -Werror=missing-home-modules
+                     -fhide-source-paths

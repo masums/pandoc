@@ -37,9 +37,9 @@
     </names>
   </macro>
 
-  <macro name="editor">
+  <macro name="editor" delimiter=" ">
     <names variable="editor" prefix="{{jats}}&lt;person-group person-group-type=&quot;editor&quot;&gt;{{/jats}}" suffix="{{jats}}&lt;/person-group&gt;{{/jats}}">
-      <name prefix="{{jats}}&lt;name&gt;{{/jats}}" suffix="{{jats}}&lt;/name&gt;{{/jats}}" name-as-sort-order="all" sort-separator="">
+      <name prefix="{{jats}}&lt;name&gt;{{/jats}}" suffix="{{jats}}&lt;/name&gt;{{/jats}}" name-as-sort-order="all" sort-separator=" ">
         <name-part name="family" text-case="capitalize-first" prefix="{{jats}}&lt;surname&gt;{{/jats}}" suffix="{{jats}}&lt;/surname&gt;{{/jats}}"/>
         <name-part name="given" text-case="capitalize-first" prefix="{{jats}}&lt;given-names&gt;{{/jats}}" suffix="{{jats}}&lt;/given-names&gt;{{/jats}}"/>
       </name>
@@ -64,7 +64,7 @@
       <if type="book" match="any">
         <group prefix="{{jats}}&lt;source&gt;{{/jats}}" suffix="{{jats}}&lt;/source&gt;{{/jats}}">
 	        <text variable="title"/>
-				</group>			
+				</group>
 			</if>
       <else>
         <group prefix="{{jats}}&lt;article-title&gt;{{/jats}}" suffix="{{jats}}&lt;/article-title&gt;{{/jats}}">
@@ -90,8 +90,7 @@
     </choose>
     <choose>
       <if match="any" variable="PMID">
-        <group prefix="{{jats}}&lt;ext-link ext-link-type=&quot;pmid&quot; {{/jats}}" suffix="{{jats}}&lt;/ext-link&gt;{{/jats}}">
-          <text variable="PMID" prefix="{{jats}}xlink:href=&quot;http://www.ncbi.nlm.nih.gov/pubmed/{{/jats}}" suffix="{{jats}}&quot; xlink:type=&quot;simple&quot;&gt;{{/jats}}"/>
+        <group prefix="{{jats}}&lt;pub-id pub-id-type=&quot;pmid&quot;&gt;{{/jats}}" suffix="{{jats}}&lt;/pub-id&gt;{{/jats}}">
           <text variable="PMID"/>
         </group>
       </if>
@@ -202,4 +201,3 @@
     </layout>
   </bibliography>
 </style>
-

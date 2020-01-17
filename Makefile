@@ -4,14 +4,10 @@ SOURCEFILES?=$(shell find pandoc.hs src test -name '*.hs')
 BRANCH?=master
 RESOLVER?=lts-13
 GHCOPTS=-fdiagnostics-color=always
-# Later:
-# -Wpartial-fields        (currently used in Powerpoint writer)
-# -Wmissing-export-lists  (currently some Odt modules violate this)
-# -Wredundant-constraints (problematic if we want to support older base)
 WEBSITE=../../web/pandoc.org
 
 quick:
-	stack install --ghc-options='$(GHCOPTS)' --install-ghc --flag 'pandoc:embed_data_files' --fast --test --test-arguments='-j4 --hide-successes $(TESTARGS)'
+	stack install --ghc-options='$(GHCOPTS)' --install-ghc --flag 'pandoc:embed_data_files' --fast --test --ghc-options='-j +RTS -A64m -RTS' --test-arguments='-j4 --hide-successes $(TESTARGS)'
 
 quick-cabal:
 	cabal new-configure . --ghc-options '$(GHCOPTS)' --disable-optimization --enable-tests
@@ -19,26 +15,32 @@ quick-cabal:
 	cabal new-run test-pandoc --disable-optimization -- --hide-successes $(TESTARGS)
 
 full-cabal:
-	cabal new-configure . --ghc-options '$(GHCOPTS)' --flags '+embed_data_files +weigh-pandoc +trypandoc' --enable-tests --enable-benchmarks
+	cabal new-configure . --ghc-options '$(GHCOPTS)' --flags '+embed_data_files +trypandoc' --enable-tests --enable-benchmarks
 	cabal new-build . --disable-optimization
 	cabal new-run test-pandoc --disable-optimization -- --hide-successes $(TESTARGS)
 
 full:
-	stack install --resolver=$(RESOLVER) --flag 'pandoc:embed_data_files' --flag 'pandoc:weigh-pandoc' --flag 'pandoc:trypandoc' --bench --no-run-benchmarks --test --test-arguments='-j4 --hide-successes' --ghc-options '-Wall -Werror -fno-warn-unused-do-bind -O0 -j4 $(GHCOPTS)'
+	stack install --flag 'pandoc:embed_data_files' --flag 'pandoc:trypandoc' --bench --no-run-benchmarks --test --test-arguments='-j4 --hide-successes' --ghc-options '-Wall -Werror -fno-warn-unused-do-bind -O0 -j4 $(GHCOPTS)'
+
+ghci:
+	stack ghci --flag 'pandoc:embed_data_files'
 
 haddock:
-	stack haddock --resolver=$(RESOLVER)
+	stack haddock
 
 # Note:  to accept current results of golden tests,
 # make test TESTARGS='--accept'
 test:
-	stack test --resolver=$(RESOLVER) --flag 'pandoc:embed_data_files' --fast --test-arguments='-j4 --hide-successes $(TESTARGS)' --ghc-options '$(GHCOPTS)'
+	stack test --flag 'pandoc:embed_data_files' --fast --test-arguments='-j4 --hide-successes $(TESTARGS)' --ghc-options '$(GHCOPTS)'
+
+ghcid:
+	ghcid -c "stack repl --flag 'pandoc:embed_data_files'"
 
 bench:
-	stack bench --benchmark-arguments='$(BENCHARGS)' --resolver=$(RESOLVER) --ghc-options '$(GHCOPTS)'
+	stack bench --benchmark-arguments='$(BENCHARGS)' --ghc-options '$(GHCOPTS)'
 
 weigh:
-	stack build --resolver=$(RESOLVER) --ghc-options '$(GHCOPTS)' --flag 'pandoc:weigh-pandoc' && stack exec weigh-pandoc
+	stack build --ghc-options '$(GHCOPTS)' pandoc:weigh-pandoc && stack exec weigh-pandoc
 
 reformat:
 	for f in $(SOURCEFILES); do echo $$f; stylish-haskell -i $$f ; done
@@ -47,7 +49,7 @@ lint:
 	for f in $(SOURCEFILES); do echo $$f; hlint --verbose --refactor --refactor-options='-i -s' $$f; done
 
 changes_github:
-	pandoc --filter tools/extract-changes.hs changelog -t gfm --wrap=none | sed -e 's/\\#/#/g' | pbcopy
+	pandoc --filter tools/extract-changes.hs changelog.md -t gfm --wrap=none | sed -e 's/\\#/#/g' | pbcopy
 
 dist: man/pandoc.1
 	cabal sdist
@@ -83,7 +85,7 @@ pandoc-$(version)-windows-%.zip: pandoc-$(version)-windows-%.msi
 	rm -rf $$TEMPDIR
 
 pandoc-$(version)-windows-%.msi: pandoc-windows-%.msi
-	osslsigncode sign -pkcs12 ~/Private/ComodoCodeSigning.exp2019.p12 -in $< -i http://johnmacfarlane.net/ -t http://timestamp.comodoca.com/ -out $@ -askpass
+	osslsigncode sign -pkcs12 ~/Private/SectigoCodeSigning.exp2023.p12 -in $< -i http://johnmacfarlane.net/ -t http://timestamp.comodoca.com/ -out $@ -askpass
 	rm $<
 
 .INTERMEDIATE: pandoc-windows-i386.msi pandoc-windows-x86_64.msi
@@ -96,10 +98,13 @@ pandoc-windows-x86_64.msi:
 	JOBID=$(shell curl https://ci.appveyor.com/api/projects/jgm/pandoc | jq '.build.jobs[]| select(.name|test("x86_64")) | .jobId') && \
 	wget "https://ci.appveyor.com/api/buildjobs/$$JOBID/artifacts/windows%2F$@" -O $@
 
-man/pandoc.1: MANUAL.txt man/pandoc.1.template
-	pandoc $< -f markdown-smart -t man -s --template man/pandoc.1.template \
+man/pandoc.1: MANUAL.txt man/pandoc.1.before man/pandoc.1.after
+	pandoc $< -f markdown-smart -t man -s \
 		--lua-filter man/manfilter.lua \
-		--variable version="pandoc $(version)" \
+		--include-before-body man/pandoc.1.before \
+		--include-after-body man/pandoc.1.after \
+		--metadata author="" \
+		--variable footer="pandoc $(version)" \
 		-o $@
 
 doc/lua-filters.md: tools/ldoc.ltp data/pandoc.lua tools/update-lua-docs.lua
@@ -137,4 +142,4 @@ update-website:
 clean:
 	stack clean
 
-.PHONY: deps quick full haddock install clean test bench changes_github macospkg dist prof download_stats reformat lint weigh doc/lua-filters.md packages pandoc-templates trypandoc update-website debpkg macospkg winpkg checkdocs
+.PHONY: deps quick full haddock install clean test bench changes_github macospkg dist prof download_stats reformat lint weigh doc/lua-filters.md packages pandoc-templates trypandoc update-website debpkg macospkg winpkg checkdocs ghcid ghci

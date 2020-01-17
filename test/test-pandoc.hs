@@ -8,6 +8,7 @@ import GHC.IO.Encoding
 import Test.Tasty
 import qualified Tests.Command
 import qualified Tests.Lua
+import qualified Tests.Lua.Module
 import qualified Tests.Old
 import qualified Tests.Readers.Creole
 import qualified Tests.Readers.Docx
@@ -16,6 +17,7 @@ import qualified Tests.Readers.EPUB
 import qualified Tests.Readers.FB2
 import qualified Tests.Readers.HTML
 import qualified Tests.Readers.JATS
+import qualified Tests.Readers.Jira
 import qualified Tests.Readers.LaTeX
 import qualified Tests.Readers.Markdown
 import qualified Tests.Readers.Muse
@@ -72,6 +74,7 @@ tests pandocPath = testGroup "pandoc tests"
           , testGroup "Markdown" Tests.Readers.Markdown.tests
           , testGroup "HTML" Tests.Readers.HTML.tests
           , testGroup "JATS" Tests.Readers.JATS.tests
+          , testGroup "Jira" Tests.Readers.Jira.tests
           , testGroup "Org" Tests.Readers.Org.tests
           , testGroup "RST" Tests.Readers.RST.tests
           , testGroup "Docx" Tests.Readers.Docx.tests
@@ -84,7 +87,10 @@ tests pandocPath = testGroup "pandoc tests"
           , testGroup "FB2" Tests.Readers.FB2.tests
           , testGroup "DokuWiki" Tests.Readers.DokuWiki.tests
           ]
-        , testGroup "Lua filters" Tests.Lua.tests
+        , testGroup "Lua"
+          [ testGroup "Lua filters" Tests.Lua.tests
+          , testGroup "Lua modules" Tests.Lua.Module.tests
+          ]
         ]
 
 main :: IO ()

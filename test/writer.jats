@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!DOCTYPE article PUBLIC "-//NLM//DTD JATS (Z39.96) Journal Publishing DTD v1.0 20120330//EN"
-                  "JATS-journalpublishing1.dtd">
-<article xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink" dtd-version="1.0" article-type="other">
+<!DOCTYPE article PUBLIC "-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange DTD v1.2 20190208//EN"
+                  "JATS-archivearticle1.dtd">
+<article xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink" dtd-version="1.2" article-type="other">
 <front>
 <journal-meta>
 <journal-title-group>
@@ -16,18 +16,16 @@
 </title-group>
 <contrib-group>
 <contrib contrib-type="author">
-<name>
 <string-name>John MacFarlane</string-name>
-</name>
 </contrib>
 <contrib contrib-type="author">
-<name>
 <string-name>Anonymous</string-name>
-</name>
 </contrib>
 </contrib-group>
-<pub-date pub-type="epub">
-<string-date>July 17, 2006</string-date>
+<pub-date pub-type="epub" iso-8601-date="2006-07-17">
+<day>17</day>
+<month>7</month>
+<year>2006</year>
 </pub-date>
 </article-meta>
 </front>
@@ -72,7 +70,8 @@ Gruber’s markdown test suite.</p>
   item. Because a hard-wrapped line in the middle of a paragraph looked like a
   list item.</p>
   <p>Here’s one with a bullet. * criminey.</p>
-  <p>There should be a hard line break<break />here.</p>
+  <p>There should be a hard line break
+  here.</p>
 </sec>
 <sec id="block-quotes">
   <title>Block Quotes</title>
@@ -498,10 +497,14 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       <term><italic>orange</italic></term>
       <def>
         <p>orange fruit</p>
-        <preformat>{ orange code block }</preformat>
-        <disp-quote>
-          <p>orange block quote</p>
-        </disp-quote>
+        <p specific-use="wrapper">
+          <preformat>{ orange code block }</preformat>
+        </p>
+        <p specific-use="wrapper">
+          <disp-quote>
+            <p>orange block quote</p>
+          </disp-quote>
+        </p>
       </def>
     </def-item>
   </def-list>
@@ -552,14 +555,16 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
       <term>orange</term>
       <def>
         <p>orange fruit</p>
-        <list list-type="order">
-          <list-item>
-            <p>sublist</p>
-          </list-item>
-          <list-item>
-            <p>sublist</p>
-          </list-item>
-        </list>
+        <p specific-use="wrapper">
+          <list list-type="order">
+            <list-item>
+              <p>sublist</p>
+            </list-item>
+            <list-item>
+              <p>sublist</p>
+            </list-item>
+          </list>
+        </p>
       </def>
     </def-item>
   </def-list>
@@ -844,38 +849,50 @@ These should not be escaped:  \$ \\ \&gt; \[ \{</preformat>
 </sec>
 <sec id="footnotes">
   <title>Footnotes</title>
-  <p>Here is a footnote reference,<fn>
-    <p>Here is the footnote. It can go anywhere after the footnote reference.
-    It need not be placed at the end of the document.</p>
-  </fn> and another.<fn>
-    <p>Here’s the long note. This one contains multiple blocks.</p>
-    <p>Subsequent blocks are indented to show that they belong to the footnote
-    (as with list items).</p>
-    <preformat>  { &lt;code&gt; }</preformat>
-    <p>If you want, you can indent every line, but you can also be lazy and
-    just indent the first line of each block.</p>
-  </fn> This should <italic>not</italic> be a footnote reference, because it
-  contains a space.[^my note] Here is an inline note.<fn>
-    <p>This is <italic>easier</italic> to type. Inline notes may contain
-    <ext-link ext-link-type="uri" xlink:href="http://google.com">links</ext-link>
-    and <monospace>]</monospace> verbatim characters, as well as [bracketed
-    text].</p>
-  </fn></p>
+  <p>Here is a footnote reference,<xref ref-type="fn" rid="fn1">1</xref> and
+  another.<xref ref-type="fn" rid="fn2">2</xref> This should
+  <italic>not</italic> be a footnote reference, because it contains a
+  space.[^my note] Here is an inline
+  note.<xref ref-type="fn" rid="fn3">3</xref></p>
   <disp-quote>
-    <p>Notes can go in quotes.<fn>
-      <p>In quote.</p>
-    </fn></p>
+    <p>Notes can go in quotes.<xref ref-type="fn" rid="fn4">4</xref></p>
   </disp-quote>
   <list list-type="order">
     <list-item>
-      <p>And in list items.<fn>
-        <p>In list.</p>
-      </fn></p>
+      <p>And in list items.<xref ref-type="fn" rid="fn5">5</xref></p>
     </list-item>
   </list>
   <p>This paragraph should not be part of the note, as it is not indented.</p>
 </sec>
 </body>
 <back>
+<fn-group>
+  <fn id="fn1">
+    <p>Here is the footnote. It can go anywhere after the footnote reference.
+    It need not be placed at the end of the document.</p>
+  </fn>
+  <fn id="fn2">
+    <p>Here’s the long note. This one contains multiple blocks.</p>
+    <p>Subsequent blocks are indented to show that they belong to the footnote
+    (as with list items).</p>
+    <p specific-use="wrapper">
+      <preformat>  { &lt;code&gt; }</preformat>
+    </p>
+    <p>If you want, you can indent every line, but you can also be lazy and
+    just indent the first line of each block.</p>
+  </fn>
+  <fn id="fn3">
+    <p>This is <italic>easier</italic> to type. Inline notes may contain
+    <ext-link ext-link-type="uri" xlink:href="http://google.com">links</ext-link>
+    and <monospace>]</monospace> verbatim characters, as well as [bracketed
+    text].</p>
+  </fn>
+  <fn id="fn4">
+    <p>In quote.</p>
+  </fn>
+  <fn id="fn5">
+    <p>In list.</p>
+  </fn>
+</fn-group>
 </back>
 </article>

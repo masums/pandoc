@@ -81,7 +81,7 @@ tests = [ testGroup "code blocks"
           , "struck out and not highlighted" =:
             strikeout (code "foo" <> space
               <> str "bar") =?>
-            "\\sout{\\texttt{foo} bar}"
+            "\\sout{\\mbox{\\texttt{foo}} bar}"
           , "single quotes" =:
               code "dog's" =?> "\\texttt{dog\\textquotesingle{}s}"
           , "backtick" =:
@@ -170,7 +170,7 @@ tests = [ testGroup "code blocks"
                       , "\\addcontentsline{toc}{subsection}{header4}\n"
                       , "\\subsubsection*{header5}"
                       , "\\addcontentsline{toc}{subsubsection}{header5}\n"
-                      , "\\paragraph{header6}"
+                      , "\\paragraph*{header6}"
                       , "\\addcontentsline{toc}{paragraph}{header6}"
                       ]
             ]

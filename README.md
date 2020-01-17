@@ -13,8 +13,8 @@ release](https://img.shields.io/hackage/v/pandoc.svg?label=hackage)](http://hack
 [![stackage LTS
 package](http://stackage.org/package/pandoc/badge/lts)](http://stackage.org/lts/package/pandoc)
 [![CircleCI](https://circleci.com/gh/jgm/pandoc.svg?style=svg)](https://circleci.com/gh/jgm/pandoc)
-[![appveyor build
-status](https://ci.appveyor.com/api/projects/status/nvqs4ct090igjiqc?svg=true)](https://ci.appveyor.com/project/jgm/pandoc)
+[![CI
+tests](https://github.com/jgm/pandoc/workflows/CI%20tests/badge.svg)](https://github.com/jgm/pandoc/actions)
 [![license](https://img.shields.io/badge/license-GPLv2+-lightgray.svg)](https://www.gnu.org/licenses/gpl.html)
 [![pandoc-discuss on google
 groups](https://img.shields.io/badge/pandoc-discuss-red.svg?style=social)](https://groups.google.com/forum/#!forum/pandoc-discuss)
@@ -39,17 +39,22 @@ library. It can convert *from*
   - `gfm` ([GitHub-Flavored
     Markdown](https://help.github.com/articles/github-flavored-markdown/)),
     or the deprecated and less accurate `markdown_github`; use
-    [`markdown_github`](#markdown-variants) only if you need extensions
-    not supported in [`gfm`](#markdown-variants).
+    [`markdown_github`](https://pandoc.org/MANUAL.html#markdown-variants)
+    only if you need extensions not supported in
+    [`gfm`](https://pandoc.org/MANUAL.html#markdown-variants).
   - `haddock` ([Haddock
     markup](https://www.haskell.org/haddock/doc/html/ch03s08.html))
   - `html` ([HTML](http://www.w3.org/html/))
   - `ipynb` ([Jupyter
     notebook](https://nbformat.readthedocs.io/en/latest/))
   - `jats` ([JATS](https://jats.nlm.nih.gov) XML)
+  - `jira`
+    ([Jira](https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all)
+    wiki markup)
   - `json` (JSON version of native AST)
   - `latex` ([LaTeX](http://latex-project.org))
-  - `markdown` ([Pandoc’s Markdown](#pandocs-markdown))
+  - `markdown` ([Pandoc’s
+    Markdown](https://pandoc.org/MANUAL.html#pandocs-markdown))
   - `markdown_mmd`
     ([MultiMarkdown](http://fletcherpenney.net/multimarkdown/))
   - `markdown_phpextra` ([PHP Markdown
@@ -98,8 +103,9 @@ It can convert *to*
   - `gfm` ([GitHub-Flavored
     Markdown](https://help.github.com/articles/github-flavored-markdown/)),
     or the deprecated and less accurate `markdown_github`; use
-    [`markdown_github`](#markdown-variants) only if you need extensions
-    not supported in [`gfm`](#markdown-variants).
+    [`markdown_github`](https://pandoc.org/MANUAL.html#markdown-variants)
+    only if you need extensions not supported in
+    [`gfm`](https://pandoc.org/MANUAL.html#markdown-variants).
   - `haddock` ([Haddock
     markup](https://www.haskell.org/haddock/doc/html/ch03s08.html))
   - `html` or `html5` ([HTML](http://www.w3.org/html/),
@@ -111,11 +117,15 @@ It can convert *to*
   - `ipynb` ([Jupyter
     notebook](https://nbformat.readthedocs.io/en/latest/))
   - `jats` ([JATS](https://jats.nlm.nih.gov) XML)
+  - `jira`
+    ([Jira](https://jira.atlassian.com/secure/WikiRendererHelpAction.jspa?section=all)
+    wiki markup)
   - `json` (JSON version of native AST)
   - `latex` ([LaTeX](http://latex-project.org))
   - `man` ([roff
     man](http://man7.org/linux/man-pages/man7/groff_man.7.html))
-  - `markdown` ([Pandoc’s Markdown](#pandocs-markdown))
+  - `markdown` ([Pandoc’s
+    Markdown](https://pandoc.org/MANUAL.html#pandocs-markdown))
   - `markdown_mmd`
     ([MultiMarkdown](http://fletcherpenney.net/multimarkdown/))
   - `markdown_phpextra` ([PHP Markdown
@@ -133,6 +143,7 @@ It can convert *to*
   - `opml` ([OPML](http://dev.opml.org/spec2.html))
   - `opendocument` ([OpenDocument](http://opendocument.xml.org))
   - `org` ([Emacs Org mode](http://orgmode.org))
+  - `pdf` ([PDF](https://www.adobe.com/pdf/))
   - `plain` (plain text),
   - `pptx`
     ([PowerPoint](https://en.wikipedia.org/wiki/Microsoft_PowerPoint)
@@ -158,8 +169,8 @@ It can convert *to*
     markup](https://www.xwiki.org/xwiki/bin/view/Documentation/UserGuide/Features/XWikiSyntax/))
   - `zimwiki` ([ZimWiki
     markup](http://zim-wiki.org/manual/Help/Wiki_Syntax.html))
-  - the path of a custom lua writer, see [Custom
-    writers](#custom-writers) below
+  - the path of a custom Lua writer, see [Custom
+    writers](https://pandoc.org/MANUAL.html#custom-writers) below
 
 </div>
 
@@ -177,7 +188,7 @@ convert this native representation into a target format. Thus, adding an
 input or output format requires only adding a reader or writer. Users
 can also run custom pandoc filters to modify the intermediate AST (see
 the documentation for [filters](https://pandoc.org/filters.html) and
-[lua filters](https://pandoc.org/lua-filters.html)).
+[Lua filters](https://pandoc.org/lua-filters.html)).
 
 Because pandoc’s intermediate representation of a document is less
 expressive than many of the formats it converts between, one should not

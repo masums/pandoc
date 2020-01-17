@@ -27,6 +27,8 @@ local M = {}
 -- Re-export bundled modules
 M.List = require 'pandoc.List'
 M.mediabag = require 'pandoc.mediabag'
+M.system = require 'pandoc.system'
+M.types = require 'pandoc.types'
 M.utils = require 'pandoc.utils'
 M.text = require 'text'
 
@@ -48,11 +50,15 @@ local utils = M.utils
 -- @param indices list of indices, starting with the most deeply nested
 -- @return newly created function
 -- @local
-function make_indexing_function(template, indices)
+function make_indexing_function(template, ...)
+  local indices = {...}
   local loadstring = loadstring or load
   local bracketed = {}
   for i = 1, #indices do
-    bracketed[i] = string.format('[%d]', indices[#indices - i + 1])
+    local idx = indices[#indices - i + 1]
+    bracketed[i] = type(idx) == 'number'
+      and string.format('[%d]', idx)
+      or string.format('.%s', idx)
   end
   local fnstr = string.format('return ' .. template, table.concat(bracketed))
   return assert(loadstring(fnstr))()
@@ -67,11 +73,16 @@ local function create_accessor_functions (fn_template, accessors)
   local res = {}
   function add_accessors(acc, ...)
     if type(acc) == 'string' then
-      res[acc] = make_indexing_function(fn_template, {...})
+      res[acc] = make_indexing_function(fn_template, ...)
     elseif type(acc) == 'table' and #acc == 0 and next(acc) then
+      -- Named substructure: the given names are accessed via the substructure,
+      -- but the accessors are also added to the result table, enabling direct
+      -- access from the parent element. Mainly used for `attr`.
       local name, substructure = next(acc)
-      res[name] = make_indexing_function(fn_template, {...})
-      add_accessors(substructure, ...)
+      res[name] = make_indexing_function(fn_template, ...)
+      for _, subname in ipairs(substructure) do
+        res[subname] = make_indexing_function(fn_template, subname, ...)
+      end
     else
       for i = 1, #(acc or {}) do
         add_accessors(acc[i], i, ...)
@@ -270,6 +281,35 @@ local function ensureDefinitionPairs (pair)
   return {inlines, blocks}
 end
 
+--- Split a string into it's words, using whitespace as separators.
+local function words (str)
+  local ws = {}
+  for w in str:gmatch("([^%s]+)") do ws[#ws + 1] = w end
+  return ws
+end
+
+--- Try hard to turn the arguments into an Attr object.
+local function ensureAttr(attr)
+  if type(attr) == 'table' then
+    if #attr > 0 then return M.Attr(table.unpack(attr)) end
+
+    -- assume HTML-like key-value pairs
+    local ident = attr.id or ''
+    local classes = words(attr.class or '')
+    local attributes = attr
+    attributes.id = nil
+    attributes.class = nil
+    return M.Attr(ident, classes, attributes)
+  elseif attr == nil then
+    return M.Attr()
+  elseif type(attr) == 'string' then
+    -- treat argument as ID
+    return M.Attr(attr)
+  end
+  -- print(arg, ...)
+  error('Could not convert to Attr')
+end
+
 ------------------------------------------------------------------------
 --- Pandoc Document
 -- @section document
@@ -279,6 +319,7 @@ end
 -- @tparam      {Block,...} blocks      document content
 -- @tparam[opt] Meta        meta        document meta data
 M.Pandoc = AstElement:make_subtype'Pandoc'
+M.Pandoc.behavior.clone = M.types.clone.Pandoc
 function M.Pandoc:new (blocks, meta)
   return {
     blocks = ensureList(blocks),
@@ -298,6 +339,7 @@ M.Doc = M.Pandoc
 -- @function Meta
 -- @tparam meta table table containing document meta information
 M.Meta = AstElement:make_subtype'Meta'
+M.Meta.behavior.clone = M.types.clone.Meta
 function M.Meta:new (meta) return meta end
 
 
@@ -305,6 +347,7 @@ function M.Meta:new (meta) return meta end
 -- MetaValue
 -- @section MetaValue
 M.MetaValue = AstElement:make_subtype('MetaValue')
+M.MetaValue.behavior.clone = M.types.clone.MetaValue
 
 --- Meta blocks
 -- @function MetaBlocks
@@ -368,6 +411,7 @@ end
 
 --- Block elements
 M.Block = AstElement:make_subtype'Block'
+M.Block.behavior.clone = M.types.clone.Block
 
 --- Creates a block quote element
 -- @function BlockQuote
@@ -396,7 +440,7 @@ M.BulletList = M.Block:create_constructor(
 -- @treturn     Block                   code block element
 M.CodeBlock = M.Block:create_constructor(
   "CodeBlock",
-  function(text, attr) return {c = {attr or M.Attr(), text}} end,
+  function(text, attr) return {c = {ensureAttr(attr), text}} end,
   {{attr = {"identifier", "classes", "attributes"}}, "text"}
 )
 
@@ -420,7 +464,7 @@ M.DefinitionList = M.Block:create_constructor(
 M.Div = M.Block:create_constructor(
   "Div",
   function(content, attr)
-    return {c = {attr or M.Attr(), ensureList(content)}}
+    return {c = {ensureAttr(attr), ensureList(content)}}
   end,
   {{attr = {"identifier", "classes", "attributes"}}, "content"}
 )
@@ -434,7 +478,7 @@ M.Div = M.Block:create_constructor(
 M.Header = M.Block:create_constructor(
   "Header",
   function(level, content, attr)
-    return {c = {level, attr or M.Attr(), ensureInlineList(content)}}
+    return {c = {level, ensureAttr(attr), ensureInlineList(content)}}
   end,
   {"level", {attr = {"identifier", "classes", "attributes"}}, "content"}
 )
@@ -541,6 +585,7 @@ M.Table = M.Block:create_constructor(
 
 --- Inline element class
 M.Inline = AstElement:make_subtype'Inline'
+M.Inline.behavior.clone = M.types.clone.Inline
 
 --- Creates a Cite inline element
 -- @function Cite
@@ -562,7 +607,7 @@ M.Cite = M.Inline:create_constructor(
 -- @treturn Inline code element
 M.Code = M.Inline:create_constructor(
   "Code",
-  function(text, attr) return {c = {attr or M.Attr(), text}} end,
+  function(text, attr) return {c = {ensureAttr(attr), text}} end,
   {{attr = {"identifier", "classes", "attributes"}}, "text"}
 )
 
@@ -587,8 +632,7 @@ M.Image = M.Inline:create_constructor(
   "Image",
   function(caption, src, title, attr)
     title = title or ""
-    attr = attr or M.Attr()
-    return {c = {attr, ensureInlineList(caption), {src, title}}}
+    return {c = {ensureAttr(attr), ensureInlineList(caption), {src, title}}}
   end,
   {{attr = {"identifier", "classes", "attributes"}}, "caption", {"src", "title"}}
 )
@@ -612,7 +656,7 @@ M.Link = M.Inline:create_constructor(
   "Link",
   function(content, target, title, attr)
     title = title or ""
-    attr = attr or M.Attr()
+    attr = ensureAttr(attr)
     return {c = {attr, ensureInlineList(content), {target, title}}}
   end,
   {{attr = {"identifier", "classes", "attributes"}}, "content", {"target", "title"}}
@@ -736,7 +780,7 @@ M.Space = M.Inline:create_constructor(
 M.Span = M.Inline:create_constructor(
   "Span",
   function(content, attr)
-    return {c = {attr or M.Attr(), ensureInlineList(content)}}
+    return {c = {ensureAttr(attr), ensureInlineList(content)}}
   end,
   {{attr = {"identifier", "classes", "attributes"}}, "content"}
 )
@@ -845,7 +889,10 @@ local AttributeList = {
 
   __newindex = function (t, k, v)
     local cur, idx = List.find_if(t, assoc_key_equals(k))
-    if v == nil then
+    if v == nil and not cur then
+      -- deleted key does not exists in list
+      return
+    elseif v == nil then
       table.remove(t, idx)
     elseif cur then
       cur[2] = v
@@ -892,16 +939,21 @@ function M.Attr:new (identifier, classes, attributes)
   identifier = identifier or ''
   classes = ensureList(classes or {})
   attributes = setmetatable(to_alist(attributes or {}), AttributeList)
-  return {identifier, classes, attributes}
+  return setmetatable({identifier, classes, attributes}, self.behavior)
 end
+M.Attr.behavior.clone = M.types.clone.Attr
+M.Attr.behavior.tag = 'Attr'
 M.Attr.behavior._field_names = {identifier = 1, classes = 2, attributes = 3}
 M.Attr.behavior.__eq = utils.equals
 M.Attr.behavior.__index = function(t, k)
-  return rawget(t, getmetatable(t)._field_names[k]) or
+  return (k == 't' and t.tag) or
+    rawget(t, getmetatable(t)._field_names[k]) or
     getmetatable(t)[k]
 end
 M.Attr.behavior.__newindex = function(t, k, v)
-  if getmetatable(t)._field_names[k] then
+  if k == 'attributes' then
+    rawset(t, 3, setmetatable(to_alist(v or {}), AttributeList))
+  elseif getmetatable(t)._field_names[k] then
     rawset(t, getmetatable(t)._field_names[k], v)
   else
     rawset(t, k, v)
@@ -916,8 +968,27 @@ M.Attr.behavior.__pairs = function(t)
   return make_next_function(fields), t, nil
 end
 
+-- Monkey-patch setters for `attr` fields to be more forgiving in the input that
+-- results in a valid Attr value.
+function augment_attr_setter (setters)
+  if setters.attr then
+    local orig = setters.attr
+    setters.attr = function(k, v)
+      orig(k, ensureAttr(v))
+    end
+  end
+end
+for _, blk in pairs(M.Block.constructor) do
+  augment_attr_setter(blk.behavior.setters)
+end
+for _, inln in pairs(M.Inline.constructor) do
+  augment_attr_setter(inln.behavior.setters)
+end
+
+
 -- Citation
 M.Citation = AstElement:make_subtype'Citation'
+M.Citation.behavior.clone = M.types.clone.Citation
 
 --- Creates a single citation.
 -- @function Citation
@@ -940,6 +1011,7 @@ end
 
 -- ListAttributes
 M.ListAttributes = AstElement:make_subtype 'ListAttributes'
+M.ListAttributes.behavior.clone = M.types.clone.ListAttributes
 
 --- Creates a set of list attributes.
 -- @function ListAttributes

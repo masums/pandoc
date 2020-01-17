@@ -86,6 +86,8 @@ tests pandocPath =
     , test' "reader" ["-r", "docbook", "-w", "native", "-s"]
       "docbook-reader.docbook" "docbook-reader.native"
     , test' "reader" ["-r", "docbook", "-w", "native", "-s"]
+      "docbook-chapter.docbook" "docbook-chapter.native"
+    , test' "reader" ["-r", "docbook", "-w", "native", "-s"]
       "docbook-xref.docbook" "docbook-xref.native"
     ]
   , testGroup "docbook5"
@@ -95,6 +97,11 @@ tests pandocPath =
     [ testGroup "writer" $ writerTests' "jats"
     , test' "reader" ["-r", "jats", "-w", "native", "-s"]
       "jats-reader.xml" "jats-reader.native"
+    ]
+  , testGroup "jira"
+    [ testGroup "writer" $ writerTests' "jira"
+    , test' "reader" ["-r", "jira", "-w", "native", "-s"]
+      "jira-reader.jira" "jira-reader.native"
     ]
   , testGroup "native"
     [ testGroup "writer" $ writerTests' "native"

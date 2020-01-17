@@ -2,6 +2,7 @@
 
 - Anabra
 - Arata Mizuki
+- Arfon Smith
 - Aaron Wolen
 - Albert Krewinkel
 - Alex Ivkin
@@ -10,7 +11,9 @@
 - Alexander Krotov
 - Alexander Sulfrian
 - Alexander V Vershilov
+- Alexandre Franke
 - Alfred Wechselberger
+- Amogh Rathore
 - Anders Waldenborg
 - Andreas Lööw
 - Andrew Dunning
@@ -24,6 +27,7 @@
 - B. Scott Michel
 - Ben Firshman
 - Ben Gamari
+- Ben Steinberg
 - Beni Cherniavsky-Paskin
 - Benoit Schweblin
 - Bjorn Buckwalter
@@ -36,6 +40,7 @@
 - Carlos Sosa
 - Chris Black
 - Christian Conkle
+- Christian Despres
 - Christoffer Ackelman
 - Christoffer Sawicki
 - Clare Macrae
@@ -45,23 +50,32 @@
 - Craig S. Bosma
 - Damien Clochard
 - Daniel Bergey
+- Daniel Maslowski
 - Daniel T. Staal
 - Daniele D'Orazio
 - David A Roberts
 - David Lazar
 - David Röthlisberger
 - Denis Laxalde
+- Denis Maier
 - Derek Chen-Becker
+- Dmitry Pogodin
 - Douglas Calvert
+- Eigil Rischel
 - Emanuel Evans
 - Emily Eisenberg
 - Eric Kow
 - Eric Seidel
+- Eric Schrijver
 - Étienne Bersac
 - Felix Yan
+- Félix Baylac-Jacqué
+- Florian Beeres
 - Florian Eitel
+- Florian Klink
 - Francesco Occhipinti
 - François Gannaz
+- Frederik Elwert
 - Freiric Barral
 - Freirich Raabe
 - Frerich Raabe
@@ -75,13 +89,16 @@
 - Gwern Branwen
 - Hamish Mackenzie
 - Hans-Peter Deifel
+- Heiko Schlittermann
 - Henrik Tramberend
 - Henry de Valence
 - Hubert Plociniczak
+- Ian Max Andolina
 - Igor Khorlo
 - Ilya V. Portnov
 - Ivan Trubach
 - Ivo Clarysse
+- Jared Lander
 - J. B. Rainsberger
 - J. Lewis Muir
 - Jaime Marquínez Ferrándiz
@@ -90,11 +107,13 @@
 - Jamie F. Olson
 - Jan Larres
 - Jan Schulz
+- Jan-Otto Kröpke
 - Jason Ronallo
 - Jeff Arnold
 - Jeff Runningen
 - Jens Getreu
 - Jens Petersen
+- Jeroen de Haas
 - Jesse Rosenthal
 - Joe Hermaszewski
 - Joe Hillenbrand
@@ -112,13 +131,16 @@
 - Juliusz Gonera
 - Justin Bogner
 - Jérémy Bobbio
+- Karl Pettersson
 - Keiichiro Shikano
 - Kelsey Hightower
 - Kolen Cheung
 - Konstantin Zudov
 - Kristof Bastiaensen
+- Krystof Beuermann
 - Herwig Stuetz
 - Lars-Dominik Braun
+- Leif Metcalf
 - Luke Plant
 - Marc Schreiber
 - Mark Szepieniec
@@ -129,6 +151,7 @@
 - Mathias Schenner
 - Mathias Walter
 - Mathieu Duponchelle
+- Matthew Doty
 - Matthew Eddey
 - Matthew Pickering
 - Matthias C. M. Troffaes
@@ -138,6 +161,7 @@
 - Merijn Verstraaten
 - Michael Beaumont
 - Michael Chladek
+- Michael Peyton Jones
 - Michael Snoyman
 - Michael Thompson
 - MinRK
@@ -150,16 +174,20 @@
 - Nikolay Yakimov
 - Nils Carlson
 - Nokome Bentley
+- Ole Martin Ruud
 - Oliver Matthews
 - Ophir Lifshitz
 - Or Neeman
 - OvidiusCicero
+- Owen McGrath
 - Pablo Rodríguez
 - Pascal Wagler
 - Paul Tilley
 - Paul Rivier
 - Paulo Tanimoto
+- Pete Ryland
 - Peter Wang
+- Philip Pesca
 - Philippe Ombredanne
 - Phillip Alday
 - Prayag Verma
@@ -177,6 +205,7 @@
 - Sergey Astanin
 - Shahbaz Youssefi
 - Shaun Attfield
+- Shim Myeongseob
 - Sidarth Kapur
 - Sidharth Kapur
 - Simon Hengel
@@ -192,30 +221,40 @@
 - Tiziano Müller
 - Todd Sifleet
 - Tom Leese
+- Tristan Stenner
 - Uli Köhler
+- Urs Liska
 - Václav Zeman
+- Václav Haisman
+- Vanessa McHale
+- Vasily Alferov
 - Viktor Kronvall
 - Vincent
-- Václav Haisman
-- Václav Zeman
 - Wandmalfarbe
 - Waldir Pimenta
 - Wikiwide
+- Winnie Hellmann
 - Xavier Olive
 - Yan Pashkovsky
 - Yoan Blanc
 - Yuchen Pei
+- Zihang Chen
+- blmage
 - bucklereed
 - bumper314
+- chinapedia
 - csforste
 - d-dorazio
-- iandol
+- ebiim
 - infinity0x
+- jeongminkim-islab
 - kaizshang91
 - lux-lth
 - lwolfsonkin
 - nkalvi
+- niszet
 - oltolm
+- oquechy
 - quasicomputational
 - qerub
 - robabla
@@ -226,4 +265,5 @@
 - takahashim
 - tgkokk
 - thsutton
+- vijayphoenix
 - wiefling

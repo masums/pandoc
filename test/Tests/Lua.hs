@@ -11,11 +11,10 @@
 
 Unit and integration tests for pandoc's Lua subsystem.
 -}
-module Tests.Lua ( tests ) where
+module Tests.Lua ( runLuaTest, tests ) where
 
 import Prelude
 import Control.Monad (when)
-import Data.Version (Version (versionBranch))
 import System.FilePath ((</>))
 import Test.Tasty (TestTree, localOption)
 import Test.Tasty.HUnit (Assertion, assertEqual, testCase)
@@ -24,7 +23,8 @@ import Text.Pandoc.Arbitrary ()
 import Text.Pandoc.Builder (bulletList, definitionList, displayMath, divWith,
                             doc, doubleQuoted, emph, header, lineBlock,
                             linebreak, math, orderedList, para, plain, rawBlock,
-                            singleQuoted, space, str, strong)
+                            singleQuoted, space, str, strong,
+                            HasMeta (setMeta))
 import Text.Pandoc.Class (runIOorExplode, setUserDataDir)
 import Text.Pandoc.Definition (Block (BlockQuote, Div, Para), Inline (Emph, Str),
                                Attr, Meta, Pandoc, pandocTypesVersion)
@@ -34,6 +34,8 @@ import Text.Pandoc.Options (def)
 import Text.Pandoc.Shared (pandocVersion)
 
 import qualified Foreign.Lua as Lua
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
 
 tests :: [TestTree]
 tests = map (localOption (QuickCheckTests 20))
@@ -128,43 +130,46 @@ tests = map (localOption (QuickCheckTests 20))
       (doc $ divWith ("", [], kv_before) (para "nil"))
       (doc $ divWith ("", [], kv_after) (para "nil"))
 
-  , testCase "Test module pandoc.utils" $
-    assertFilterConversion "pandoc.utils doesn't work as expected."
-      "test-pandoc-utils.lua"
-      (doc $ para "doesn't matter")
-      (doc $ mconcat [ plain (str "blocks_to_inlines: OK")
-                     , plain (str "hierarchicalize: OK")
-                     , plain (str "normalize_date: OK")
-                     , plain (str "pipe: OK")
-                     , plain (str "failing pipe: OK")
-                     , plain (str "read: OK")
-                     , plain (str "failing read: OK")
-                     , plain (str "sha1: OK")
-                     , plain (str "stringify: OK")
-                     , plain (str "to_roman_numeral: OK")
-                     ])
+  , testCase "Filter list of inlines" $
+      assertFilterConversion "List of inlines"
+      "inlines-filter.lua"
+      (doc $ para ("Hello," <> linebreak <> "World! Wassup?"))
+      (doc $ para "Hello, World! Wassup?")
+
+  , testCase "Filter list of blocks" $
+      assertFilterConversion "List of blocks"
+      "blocks-filter.lua"
+      (doc $ para "one." <> para "two." <> para "three.")
+      (doc $ plain "3")
+
+  , testCase "Filter Meta" $
+    let setMetaBefore = setMeta "old" ("old" :: T.Text)
+                      . setMeta "bool" False
+        setMetaAfter  = setMeta "new" ("new" :: T.Text)
+                      . setMeta "bool" True
+    in assertFilterConversion "Meta filtering"
+      "meta.lua"
+      (setMetaBefore . doc $ mempty)
+      (setMetaAfter . doc $ mempty)
 
   , testCase "Script filename is set" $
     assertFilterConversion "unexpected script name"
       "script-name.lua"
       (doc $ para "ignored")
-      (doc $ para (str $ "lua" </> "script-name.lua"))
+      (doc $ para (str $ T.pack $ "lua" </> "script-name.lua"))
 
-  , testCase "Pandoc version is set" . runLua' $ do
-      Lua.getglobal' "table.concat"
+  , testCase "Pandoc version is set" . runLuaTest $ do
       Lua.getglobal "PANDOC_VERSION"
-      Lua.push ("." :: String) -- separator
-      Lua.call 2 1
-      Lua.liftIO . assertEqual "pandoc version is wrong" pandocVersion
-        =<< Lua.peek Lua.stackTop
+      Lua.liftIO .
+        assertEqual "pandoc version is wrong" (TE.encodeUtf8 pandocVersion)
+        =<< Lua.tostring' Lua.stackTop
 
-  , testCase "Pandoc types version is set" . runLua' $ do
-      let versionNums = versionBranch pandocTypesVersion
+  , testCase "Pandoc types version is set" . runLuaTest $ do
       Lua.getglobal "PANDOC_API_VERSION"
-      Lua.liftIO . assertEqual "pandoc-types version is wrong" versionNums
+      Lua.liftIO . assertEqual "pandoc-types version is wrong" pandocTypesVersion
         =<< Lua.peek Lua.stackTop
 
-  , testCase "Allow singleton inline in constructors" . runLua' $ do
+  , testCase "Allow singleton inline in constructors" . runLuaTest $ do
       Lua.liftIO . assertEqual "Not the exptected Emph" (Emph [Str "test"])
         =<< Lua.callFunc "pandoc.Emph" (Str "test")
       Lua.liftIO . assertEqual "Unexpected element" (Para [Str "test"])
@@ -178,14 +183,19 @@ tests = map (localOption (QuickCheckTests 20))
           Lua.peek Lua.stackTop
         )
 
-  , testCase "Elements with Attr have `attr` accessor" . runLua' $ do
+  , testCase "Elements with Attr have `attr` accessor" . runLuaTest $ do
       Lua.push (Div ("hi", ["moin"], [])
                 [Para [Str "ignored"]])
       Lua.getfield Lua.stackTop "attr"
       Lua.liftIO . assertEqual "no accessor" (("hi", ["moin"], []) :: Attr)
         =<< Lua.peek Lua.stackTop
 
-  , testCase "informative error messages" . runLua' $ do
+  , testCase "module `pandoc.system` is present" . runLuaTest $ do
+      Lua.getglobal' "pandoc.system"
+      ty <- Lua.ltype Lua.stackTop
+      Lua.liftIO $ assertEqual "module should be a table" Lua.TypeTable ty
+
+  , testCase "informative error messages" . runLuaTest $ do
       Lua.pushboolean True
       err <- Lua.peekEither Lua.stackTop
       case (err :: Either String Pandoc) of
@@ -206,8 +216,8 @@ assertFilterConversion msg filterPath docIn expectedDoc = do
 roundtripEqual :: (Eq a, Lua.Peekable a, Lua.Pushable a) => a -> IO Bool
 roundtripEqual x = (x ==) <$> roundtripped
  where
-  roundtripped :: (Lua.Peekable a, Lua.Pushable a) => IO a
-  roundtripped = runLua' $ do
+  roundtripped :: Lua.Peekable a => IO a
+  roundtripped = runLuaTest $ do
     oldSize <- Lua.gettop
     Lua.push x
     size <- Lua.gettop
@@ -218,8 +228,8 @@ roundtripEqual x = (x ==) <$> roundtripped
       Left e -> error (show e)
       Right y -> return y
 
-runLua' :: Lua.Lua a -> IO a
-runLua' op = runIOorExplode $ do
+runLuaTest :: Lua.Lua a -> IO a
+runLuaTest op = runIOorExplode $ do
   setUserDataDir (Just "../data")
   res <- runLua op
   case res of
